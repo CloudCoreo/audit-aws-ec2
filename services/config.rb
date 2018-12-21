@@ -2,7 +2,7 @@
 coreo_aws_rule "ec2-inventory-instances" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_all-inventory.html"
+  link "https://kb.securestate.vmware.com/aws-all-inventory.html"
   include_violations_in_count false
   display_name "EC2 Instance Inventory"
   description "This rule performs an inventory on all EC2 instances in the target AWS account."
@@ -19,7 +19,7 @@ end
 coreo_aws_rule "ec2-inventory-security-groups" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_all-inventory.html"
+  link "https://kb.securestate.vmware.com/aws-all-inventory.html"
   include_violations_in_count false
   display_name "EC2 Security Group Inventory"
   description "This rule performs an inventory on all EC2 Security Groups in the target AWS account."
@@ -36,7 +36,7 @@ end
 coreo_aws_rule "ec2-ip-address-whitelisted" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-ip-address-whitelisted.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-ip-address-whitelisted.html"
   display_name "Security Group contains IP address"
   description "Security Group contains IP address"
   category "Security"
@@ -97,7 +97,7 @@ end
 coreo_aws_rule "ec2-ebs-snapshots-encrypted" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-ebs-snapshots-encrypted.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-ebs-snapshots-encrypted.html"
   display_name "EBS Volume Snapshots are not Encrypted"
   description "EBS Snapshots should be encrypted to protect data at rest"
   category "Security"
@@ -110,6 +110,11 @@ coreo_aws_rule "ec2-ebs-snapshots-encrypted" do
   operators ["=="]
   raise_when [false]
   id_map "object.snapshots.snapshot_id"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.8.9" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     encryption_unknown as var(func: <%= filter['snapshot'] %>) @filter(NOT has(encrypted)) { }
@@ -136,7 +141,7 @@ end
 coreo_aws_rule "ec2-unrestricted-traffic" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-unrestricted-traffic.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-unrestricted-traffic.html"
   display_name "Security group allows unrestricted traffic"
   description "All IP addresses are allowed to access resources in a specific security group."
   category "Security"
@@ -149,6 +154,12 @@ coreo_aws_rule "ec2-unrestricted-traffic" do
   raise_when ["0.0.0.0/0"]
   id_map "object.security_groups.group_id"
   # TODO: Resolve for IPv6
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -156,7 +167,7 @@ coreo_aws_rule "ec2-unrestricted-traffic" do
         range as relates_to @filter(<%= filter['ip_range'] %>) {
           start as range_start
           end as range_end
-          open as math(end - start == #{2**32 - 1})
+          open as math(end - start == <%= 2**32 - 1 %>)
         }
       }
     }
@@ -199,7 +210,7 @@ end
 coreo_aws_rule "ec2-all-ports-all-protocols" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-unrestricted-traffic.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-unrestricted-traffic.html"
   display_name "Security group allows traffic on all ports and all protocols"
   description "IP address(es) are allowed to access resources in a specific security group through any port and any protocol."
   category "Security"
@@ -211,6 +222,12 @@ coreo_aws_rule "ec2-all-ports-all-protocols" do
   operators ["=="]
   raise_when ["-1"]
   id_map "object.security_groups.group_id"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -221,7 +238,7 @@ coreo_aws_rule "ec2-all-ports-all-protocols" do
     open_sg as query(func: uid(sg)) @cascade {
       <%= default_predicates %>
       group_id
-      relates_to @filter(uid(ip) AND eq(val(protocol), "-1")) {
+      relates_to @filter(uid(ip) AND eq(val(protocol), "all")) {
         <%= default_predicates %>
         ip_protocol
       }
@@ -249,10 +266,10 @@ coreo_aws_rule "ec2-all-ports-all-protocols" do
                            })
 end
 
-coreo_aws_rule "ec2-TCP-1521-0.0.0.0/0" do
+coreo_aws_rule "ec2-TCP-1521-0.0.0.0-0" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 1521"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -265,6 +282,13 @@ coreo_aws_rule "ec2-TCP-1521-0.0.0.0/0" do
   raise_when ["tcp", 1521, "0.0.0.0/0"]
   id_map "object.security_groups.group_id"
   # TODO resolve for IPv6
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.6" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -274,7 +298,7 @@ coreo_aws_rule "ec2-TCP-1521-0.0.0.0/0" do
         range as relates_to @filter(<%= filter['ip_range'] %>) {
           start as range_start
           end as range_end
-          open as math(end - start == #{2**32 - 1})
+          open as math(end - start == <%= 2**32 - 1 %>)
         }
       }
     }
@@ -315,10 +339,10 @@ coreo_aws_rule "ec2-TCP-1521-0.0.0.0/0" do
                           })
 end
 
-coreo_aws_rule "ec2-TCP-3306-0.0.0.0/0" do
+coreo_aws_rule "ec2-TCP-3306-0.0.0.0-0" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 3306"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -331,6 +355,13 @@ coreo_aws_rule "ec2-TCP-3306-0.0.0.0/0" do
   raise_when ["tcp", 3306, "0.0.0.0/0"]
   id_map "object.security_groups.group_id"
   # TODO resolve for IPv6
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.6" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -340,7 +371,7 @@ coreo_aws_rule "ec2-TCP-3306-0.0.0.0/0" do
         range as relates_to @filter(<%= filter['ip_range'] %>) {
           start as range_start
           end as range_end
-          open as math(end - start == #{2**32 - 1})
+          open as math(end - start == <%= 2**32 - 1 %>)
         }
       }
     }
@@ -381,10 +412,10 @@ coreo_aws_rule "ec2-TCP-3306-0.0.0.0/0" do
                           })
 end
 
-coreo_aws_rule "ec2-TCP-5432-0.0.0.0/0" do
+coreo_aws_rule "ec2-TCP-5432-0.0.0.0-0" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 5432"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -397,6 +428,13 @@ coreo_aws_rule "ec2-TCP-5432-0.0.0.0/0" do
   raise_when ["tcp", 5432, "0.0.0.0/0"]
   id_map "object.security_groups.group_id"
   # TODO resolve for IPv6
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.6" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -406,7 +444,7 @@ coreo_aws_rule "ec2-TCP-5432-0.0.0.0/0" do
         range as relates_to @filter(<%= filter['ip_range'] %>) {
           start as range_start
           end as range_end
-          open as math(end - start == #{2**32 - 1})
+          open as math(end - start == <%= 2**32 - 1 %>)
         }
       }
     }
@@ -447,10 +485,10 @@ coreo_aws_rule "ec2-TCP-5432-0.0.0.0/0" do
                           })
 end
 
-coreo_aws_rule "ec2-TCP-27017-0.0.0.0/0" do
+coreo_aws_rule "ec2-TCP-27017-0.0.0.0-0" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 27017"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -463,6 +501,13 @@ coreo_aws_rule "ec2-TCP-27017-0.0.0.0/0" do
   raise_when ["tcp", 27017, "0.0.0.0/0"]
   id_map "object.security_groups.group_id"
   # TODO resolve for IPv6
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.6" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -472,7 +517,7 @@ coreo_aws_rule "ec2-TCP-27017-0.0.0.0/0" do
         range as relates_to @filter(<%= filter['ip_range'] %>) {
           start as range_start
           end as range_end
-          open as math(end - start == #{2**32 - 1})
+          open as math(end - start == <%= 2**32 - 1 %>)
         }
       }
     }
@@ -513,10 +558,10 @@ coreo_aws_rule "ec2-TCP-27017-0.0.0.0/0" do
                           })
 end
 
-coreo_aws_rule "ec2-TCP-1433-0.0.0.0/0" do
+coreo_aws_rule "ec2-TCP-1433-0.0.0.0-0" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 1433"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -529,6 +574,13 @@ coreo_aws_rule "ec2-TCP-1433-0.0.0.0/0" do
   raise_when ["tcp", 1433, "0.0.0.0/0"]
   id_map "object.security_groups.group_id"
   # TODO resolve for IPv6
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.6" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -538,7 +590,7 @@ coreo_aws_rule "ec2-TCP-1433-0.0.0.0/0" do
         range as relates_to @filter(<%= filter['ip_range'] %>) {
           start as range_start
           end as range_end
-          open as math(end - start == #{2**32 - 1})
+          open as math(end - start == <%= 2**32 - 1 %>)
         }
       }
     }
@@ -579,10 +631,10 @@ coreo_aws_rule "ec2-TCP-1433-0.0.0.0/0" do
                           })
 end
 
-coreo_aws_rule "ec2-TCP-3389-0.0.0.0/0" do
+coreo_aws_rule "ec2-TCP-3389-0.0.0.0-0" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 3389"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -598,6 +650,13 @@ coreo_aws_rule "ec2-TCP-3389-0.0.0.0/0" do
   raise_when ["tcp", 3389, "0.0.0.0/0"]
   id_map "object.security_groups.group_id"
   # TODO resolve for IPv6
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.1.14" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.6" },
+      { "name" => "cis-aws-foundations-benchmark", "version" => "1.2.0", "requirement" => "4.2" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -607,7 +666,7 @@ coreo_aws_rule "ec2-TCP-3389-0.0.0.0/0" do
         range as relates_to @filter(<%= filter['ip_range'] %>) {
           start as range_start
           end as range_end
-          open as math(end - start == #{2**32 - 1})
+          open as math(end - start == <%= 2**32 - 1 %>)
         }
       }
     }
@@ -648,10 +707,10 @@ coreo_aws_rule "ec2-TCP-3389-0.0.0.0/0" do
                           })
 end
 
-coreo_aws_rule "ec2-TCP-22-0.0.0.0/0" do
+coreo_aws_rule "ec2-TCP-22-0.0.0.0-0" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 22"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -667,6 +726,13 @@ coreo_aws_rule "ec2-TCP-22-0.0.0.0/0" do
   raise_when ["tcp", 22, "0.0.0.0/0"]
   id_map "object.security_groups.group_id"
   # TODO resolve for IPv6
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.1.14" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.6" },
+      { "name" => "cis-aws-foundations-benchmark", "version" => "1.2.0", "requirement" => "4.1" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -676,7 +742,7 @@ coreo_aws_rule "ec2-TCP-22-0.0.0.0/0" do
         range as relates_to @filter(<%= filter['ip_range'] %>) {
           start as range_start
           end as range_end
-          open as math(end - start == #{2**32 - 1})
+          open as math(end - start == <%= 2**32 - 1 %>)
         }
       }
     }
@@ -717,10 +783,10 @@ coreo_aws_rule "ec2-TCP-22-0.0.0.0/0" do
                           })
 end
 
-coreo_aws_rule "ec2-TCP-5439-0.0.0.0/0" do
+coreo_aws_rule "ec2-TCP-5439-0.0.0.0-0" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 5439"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -733,6 +799,13 @@ coreo_aws_rule "ec2-TCP-5439-0.0.0.0/0" do
   raise_when ["tcp", 5439, "0.0.0.0/0"]
   id_map "object.security_groups.group_id"
   # TODO resolve for IPv6
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.6" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -742,7 +815,7 @@ coreo_aws_rule "ec2-TCP-5439-0.0.0.0/0" do
         range as relates_to @filter(<%= filter['ip_range'] %>) {
           start as range_start
           end as range_end
-          open as math(end - start == #{2**32 - 1})
+          open as math(end - start == <%= 2**32 - 1 %>)
         }
       }
     }
@@ -786,7 +859,7 @@ end
 coreo_aws_rule "ec2-TCP-23" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 23"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -798,6 +871,13 @@ coreo_aws_rule "ec2-TCP-23" do
   operators ["==","=="]
   raise_when ["tcp", 23]
   id_map "object.security_groups.group_id"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.5.4" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -846,7 +926,7 @@ end
 coreo_aws_rule "ec2-TCP-21" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 21"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -858,6 +938,13 @@ coreo_aws_rule "ec2-TCP-21" do
   operators ["==","=="]
   raise_when ["tcp", 21]
   id_map "object.security_groups.group_id"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.5.4" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -906,7 +993,7 @@ end
 coreo_aws_rule "ec2-TCP-20" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 20"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -918,6 +1005,13 @@ coreo_aws_rule "ec2-TCP-20" do
   operators ["==","=="]
   raise_when ["tcp", 20]
   id_map "object.security_groups.group_id"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.5.4" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -969,7 +1063,7 @@ end
 coreo_aws_rule "ec2-TCP-8080" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-tcpportopen.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
   display_name "TCP port is open - 8080"
   description "Important TCP port is open and/or open to the world."
   category "Security"
@@ -981,6 +1075,11 @@ coreo_aws_rule "ec2-TCP-8080" do
   operators ["==","=="]
   raise_when ["tcp", 8080]
   id_map "object.security_groups.group_id"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.5.4" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: <%= filter['security_group'] %>) @cascade {
@@ -1029,7 +1128,7 @@ end
 coreo_aws_rule "ec2-ports-range" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-ports-range.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-ports-range.html"
   display_name "Security group contains a port range"
   description "Security group contains a port range rather than individual ports."
   category "Security"
@@ -1041,9 +1140,15 @@ coreo_aws_rule "ec2-ports-range" do
   operators ["!="]
   raise_when ["object[:to_port]"]
   id_map "object.security_groups.group_id"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
-    groups as var(func: <%= filter['security_group'] %> ) {
+    groups as var(func: <%= filter['security_group'] %> ) @cascade {
       permissions as relates_to @filter(<%= filter['ip_permission'] %> AND has(from_port) AND has(to_port)) {
         to_ports as to_port
         from_ports as from_port
@@ -1098,12 +1203,17 @@ coreo_aws_rule "ec2-not-used-security-groups" do
   operators ["==", "!~"]
   raise_when [false, /^default$/]
   id_map "object.security_groups.group_id"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.6" }
+    ]
+  )
   meta_rule_query <<~QUERY
   { 
-    filter as var(func: <%= filter['security_group'] %>) @cascade { 
+    filter as var(func: has(security_group)) @cascade { 
       relates_to @filter(NOT (has(owner) OR has(vpc) OR has(ip_permission) OR has(ip_permissions_egress))) { }
     } 
-    open_sg as query(func: has(security_group)) @filter(NOT uid(filter)) {
+    open_sg as query(func: <%= filter['security_group'] %>) @filter(NOT uid(filter)) {
       <%= default_predicates %> 
       group_id 
     } 
@@ -1132,7 +1242,7 @@ end
 coreo_aws_rule "ec2-default-security-group-traffic" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_ec2-default-security-group-traffic.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-default-security-group-traffic.html"
   display_name "Default Security Group Unrestricted"
   description "The default security group settings should maximally restrict traffic"
   category "Security"
@@ -1147,6 +1257,13 @@ coreo_aws_rule "ec2-default-security-group-traffic" do
   operators ["==","!="]
   raise_when ["default", nil]
   id_map "object.security_groups.group_id"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.7" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.8" },
+      { "name" => "cis-aws-foundations-benchmark", "version" => "1.2.0", "requirement" => "4.4" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     sg as var(func: has(security_group)) @cascade {
@@ -1183,7 +1300,7 @@ coreo_aws_rule "ec2-vpc-flow-logs" do
   action :define
   service :user
   category "Audit"
-  link "http://kb.cloudcoreo.com/mydoc_ec2-vpc-flow-logs.html"
+  link "https://kb.securestate.vmware.com/aws-ec2-vpc-flow-logs.html"
   display_name "Ensure VPC flow logging is enabled in all VPCs (Scored)"
   suggested_action "VPC Flow Logs be enabled for packet 'Rejects' for VPCs."
   description "VPC Flow Logs is a feature that enables you to capture information about the IP traffic going to and from network interfaces in your VPC. After you've created a flow log, you can view and retrieve its data in Amazon CloudWatch Logs."
@@ -1197,6 +1314,13 @@ coreo_aws_rule "ec2-vpc-flow-logs" do
   operators [""]
   raise_when [true]
   id_map "static.no_op"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.1" },
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.13.6" },
+      { "name" => "cis-aws-foundations-benchmark", "version" => "1.2.0", "requirement" => "4.3" }
+    ]
+  )
   meta_rule_query <<~QUERY
   {
     vpcs as var(func: <%= filter['vpc'] %>) @cascade {
@@ -1207,7 +1331,7 @@ coreo_aws_rule "ec2-vpc-flow-logs" do
     v as var(func: uid(vpcs)) @cascade {
       relates_to @filter(uid(fl) AND eq(val(fls), "ACTIVE"))
     }
-    flow_log_enabled as query(func: has(vpc)) @filter(NOT uid(v)) {
+    flow_log_enabled as query(func: <%= filter['vpc'] %>) @filter(NOT uid(v)) {
       <%= default_predicates %>
     }
     visualize(func: uid(flow_log_enabled)){
@@ -1229,7 +1353,7 @@ coreo_aws_rule "ec2-security-groups-list" do
   action :define
   service :ec2
   include_violations_in_count false
-  link "http://kb.cloudcoreo.com/mydoc_unused-alert-definition.html"
+  link "https://kb.securestate.vmware.com/aws-unused-alert-definition.html"
   display_name "CloudCoreo Use Only"
   description "This is an internally defined alert."
   category "Internal"
@@ -1246,7 +1370,7 @@ coreo_aws_rule "ec2-instances-active-security-groups-list" do
   action :define
   service :ec2
   include_violations_in_count false
-  link "http://kb.cloudcoreo.com/mydoc_unused-alert-definition.html"
+  link "https://kb.securestate.vmware.com/aws-unused-alert-definition.html"
   display_name "CloudCoreo Use Only"
   description "This is an internally defined alert."
   category "Internal"
@@ -1263,7 +1387,7 @@ coreo_aws_rule "elb-instances-active-security-groups-list" do
   action :define
   service :elasticloadbalancing
   include_violations_in_count false
-  link "http://kb.cloudcoreo.com/mydoc_unused-alert-definition.html"
+  link "https://kb.securestate.vmware.com/aws-unused-alert-definition.html"
   display_name "CloudCoreo Use Only"
   description "This is an internally defined alert."
   category "Internal"
@@ -1280,7 +1404,7 @@ coreo_aws_rule "alb-instances-active-security-groups-list" do
   action :define
   service :elasticloadbalancingv2
   include_violations_in_count false
-  link "http://kb.cloudcoreo.com/mydoc_unused-alert-definition.html"
+  link "https://kb.securestate.vmware.com/aws-unused-alert-definition.html"
   display_name "CloudCoreo Use Only"
   description "This is an internally defined alert."
   category "Internal"
@@ -1297,7 +1421,7 @@ coreo_aws_rule "rds-instances-active-security-groups-list" do
   action :define
   service :rds
   include_violations_in_count false
-  link "http://kb.cloudcoreo.com/mydoc_unused-alert-definition.html"
+  link "https://kb.securestate.vmware.com/aws-unused-alert-definition.html"
   display_name "CloudCoreo Use Only"
   description "This is an internally defined alert."
   category "Internal"
@@ -1314,7 +1438,7 @@ coreo_aws_rule "redshift-instances-active-security-groups-list" do
   action :define
   service :redshift
   include_violations_in_count false
-  link "http://kb.cloudcoreo.com/mydoc_unused-alert-definition.html"
+  link "https://kb.securestate.vmware.com/aws-unused-alert-definition.html"
   display_name "CloudCoreo Use Only"
   description "This is an internally defined alert."
   category "Internal"
@@ -1331,7 +1455,7 @@ coreo_aws_rule "elasticache-instances-active-security-groups-list" do
   action :define
   service :elasticache
   include_violations_in_count false
-  link "http://kb.cloudcoreo.com/mydoc_unused-alert-definition.html"
+  link "https://kb.securestate.vmware.com/aws-unused-alert-definition.html"
   display_name "CloudCoreo Use Only"
   description "This is an internally defined alert."
   category "Internal"
@@ -1347,7 +1471,7 @@ end
 coreo_aws_rule "vpc-inventory" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_all-inventory.html"
+  link "https://kb.securestate.vmware.com/aws-all-inventory.html"
   include_violations_in_count false
   display_name "Ensure VPC flow logging is enabled in all VPCs (Scored)"
   suggested_action "VPC Flow Logs be enabled for packet 'Rejects' for VPCs."
@@ -1366,7 +1490,7 @@ end
 coreo_aws_rule "flow-logs-inventory" do
   action :define
   service :ec2
-  link "http://kb.cloudcoreo.com/mydoc_all-inventory.html"
+  link "https://kb.securestate.vmware.com/aws-all-inventory.html"
   include_violations_in_count false
   display_name "VPC for checking Flow logs"
   description "VPC flow logs rules"
