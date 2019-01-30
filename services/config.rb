@@ -1451,24 +1451,39 @@ coreo_aws_rule "public-ami-used-by-ec2-instances" do
   )
   meta_rule_query <<~QUERY
   {
-    images as var(func: <%= filter['image'] %>) {
-      uid
+    public_images as var(func: <%= filter['image'] %>) @filter(has(public)) { }
+    instances as var(func: <%= filter['instance'] %>) { }
+    pub_images_with_instances as var(func: uid(public_images)) @cascade {
+      relates_to @filter(uid(instances))
     }
-    query(func:uid(images)) @filter(<%= filter['public'] %>) @cascade {
+    query(func: uid(pub_images_with_instances)) @cascade {
+      <%= default_predicates %>
+      public
+    }
+  }
+  QUERY
+  meta_rule_visualize <<~QUERY
+  {
+    public_images as var(func: has(image)) @filter(has(public)) { }
+    instances as var(func: has(instance)) { }
+    pub_images_with_instances as var(func: uid(public_images)) @cascade {
+      relates_to @filter(uid(instances))
+    }
+    query(func: uid(pub_images_with_instances)) {
       <%= default_predicates %>
       creation_date
       image_location
       image_owner_alias
       name
       public
-      relates_to @filter(<%= filter['instance'] %>) {
+      relates_to @filter(uid(instances)) {
         <%= default_predicates %>
       }
     }
   }
+
   QUERY
   meta_rule_node_triggers({
-                              'instance' => ['instance_id'],
                               'image' => ['public']
                           })
 end
