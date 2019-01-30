@@ -1456,7 +1456,7 @@ coreo_aws_rule "public-ami-used-by-ec2-instances" do
     pub_images_with_instances as var(func: uid(public_images)) @cascade {
       relates_to @filter(uid(instances))
     }
-    query(func: uid(pub_images_with_instances)) @cascade {
+    query(func: uid(pub_images_with_instances)) {
       <%= default_predicates %>
       public
     }
@@ -1464,12 +1464,8 @@ coreo_aws_rule "public-ami-used-by-ec2-instances" do
   QUERY
   meta_rule_visualize <<~QUERY
   {
-    public_images as var(func: has(image)) @filter(has(public)) { }
     instances as var(func: has(instance)) { }
-    pub_images_with_instances as var(func: uid(public_images)) @cascade {
-      relates_to @filter(uid(instances))
-    }
-    query(func: uid(pub_images_with_instances)) {
+    query(func: uid(<%= violation_uids %>)) {
       <%= default_predicates %>
       creation_date
       image_location
