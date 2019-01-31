@@ -1452,7 +1452,7 @@ coreo_aws_rule "public-ami-used-by-ec2-instances" do
   meta_rule_query <<~QUERY
   {
     public_images as var(func: <%= filter['image'] %>) @filter(has(public)) { }
-    instances as var(func: <%= filter['instance'] %>) { }
+    instances as var(func: has(instance)) { }
     pub_images_with_instances as var(func: uid(public_images)) @cascade {
       relates_to @filter(uid(instances))
     }
