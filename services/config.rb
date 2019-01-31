@@ -1427,6 +1427,62 @@ coreo_aws_rule "ec2-vpc-flow-logs" do
                               'flow_log' => ['flow_log_status']
                           })
 end
+
+coreo_aws_rule "public-ami-used-by-ec2-instances" do
+  action :define
+  service :ec2
+  category "Audit"
+  link "https://kb.securestate.vmware.com/aws-ec2-instance-using-public-ami.html"
+  display_name "Ensure EC2 instances are using non-public AMIs"
+  suggested_action "Use non-public AMIs to control the contents of the instances that you run. If you must use a public AMI, we recommend creating a copy of that AMI and maintain configuration control over your copy."
+  description "The contents of public Amazon Machine Images (AMIs) are managed by outside entities; using a public AMI in your infrastructure implies trusting that entity to securely manage the AMI's content. This is a risk management decision depending on your level of trust in the source entity."
+  level "Low"
+  meta_nist_171_id "3.4.1"
+  objectives [""]
+  audit_objects [""]
+  operators [""]
+  raise_when [true]
+  id_map "static.no_op"
+  meta_compliance (
+    [
+      { "name" => "nist-sp800-171", "version" => "r1", "requirement" => "3.4.1" },
+      { "name" => "nist-sp800-53", "version" => "r4", "requirement" => "CM-8" }
+    ]
+  )
+  meta_rule_query <<~QUERY
+  {
+    public_images as var(func: <%= filter['image'] %>) @filter(has(public)) { }
+    instances as var(func: has(instance)) { }
+    pub_images_with_instances as var(func: uid(public_images)) @cascade {
+      relates_to @filter(uid(instances))
+    }
+    query(func: uid(pub_images_with_instances)) {
+      <%= default_predicates %>
+      public
+    }
+  }
+  QUERY
+  meta_rule_visualize <<~QUERY
+  {
+    instances as var(func: has(instance)) { }
+    query(func: uid(<%= violation_uids %>)) {
+      <%= default_predicates %>
+      creation_date
+      image_location
+      image_owner_alias
+      name
+      public
+      relates_to @filter(uid(instances)) {
+        <%= default_predicates %>
+      }
+    }
+  }
+
+  QUERY
+  meta_rule_node_triggers({
+                              'image' => ['public']
+                          })
+end
 # end of user-visible content. Remaining resources are system-defined
 
 coreo_aws_rule "ec2-security-groups-list" do
