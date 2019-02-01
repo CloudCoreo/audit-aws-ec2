@@ -1465,7 +1465,7 @@ coreo_aws_rule "public-ami-used-by-ec2-instances" do
   meta_rule_visualize <<~QUERY
   {
     instances as var(func: has(instance)) { }
-    query(func: uid(<%= violation_uids %>)) {
+    query(func: uid(<%= violation_uid %>)) {
       <%= default_predicates %>
       creation_date
       image_location
