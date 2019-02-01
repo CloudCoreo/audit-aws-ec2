@@ -1399,15 +1399,14 @@ coreo_aws_rule "ec2-vpc-flow-logs" do
   )
   meta_rule_query <<~QUERY
   {
-    vpcs as var(func: <%= filter['vpc'] %>) @cascade {
-      fl as relates_to @filter(<%= filter['flow_log'] %>) {
+    vpcs as var(func: <%= filter['vpc'] %>) 
+    fl as var(func: <%= filter['flow_log'] %>) @cascade {
         fls as flow_log_status
-      }
     }
     v as var(func: uid(vpcs)) @cascade {
       relates_to @filter(uid(fl) AND eq(val(fls), "ACTIVE"))
     }
-    query(func: <%= filter['vpc'] %>) @filter(NOT uid(v)) {
+    query(func: uid(vpcs)) @filter(NOT uid(v)) {
       <%= default_predicates %>
     }
   }
