@@ -286,7 +286,7 @@ coreo_aws_rule "ec2-TCP-1521-0.0.0.0-0" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 1521"
+  display_name "TCP port is open - 1521 (Oracle DB)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -363,7 +363,7 @@ coreo_aws_rule "ec2-TCP-3306-0.0.0.0-0" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 3306"
+  display_name "TCP port is open - 3306 (MySQL DB)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -440,7 +440,7 @@ coreo_aws_rule "ec2-TCP-5432-0.0.0.0-0" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 5432"
+  display_name "TCP port is open - 5432 (PostgreSQL DB)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -517,7 +517,7 @@ coreo_aws_rule "ec2-TCP-27017-0.0.0.0-0" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 27017"
+  display_name "TCP port is open - 27017 (Mongo DB)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -594,7 +594,7 @@ coreo_aws_rule "ec2-TCP-1433-0.0.0.0-0" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 1433"
+  display_name "TCP port is open - 1433 (SQLserver DB)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -671,7 +671,7 @@ coreo_aws_rule "ec2-TCP-3389-0.0.0.0-0" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 3389"
+  display_name "TCP port is open - 3389 (Remote Desktop Protocol)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -751,7 +751,7 @@ coreo_aws_rule "ec2-TCP-22-0.0.0.0-0" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 22"
+  display_name "TCP port is open - 22 (SSH login)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -831,7 +831,7 @@ coreo_aws_rule "ec2-TCP-5439-0.0.0.0-0" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 5439"
+  display_name "TCP port is open - 5439 (RedShift)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -908,7 +908,7 @@ coreo_aws_rule "ec2-TCP-23" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 23"
+  display_name "TCP port is open - 23 (Telnet)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -979,7 +979,7 @@ coreo_aws_rule "ec2-TCP-21" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 21"
+  display_name "TCP port is open - 21 (FTP)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -1050,7 +1050,7 @@ coreo_aws_rule "ec2-TCP-20" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 20"
+  display_name "TCP port is open - 20 (FTP)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
@@ -1124,7 +1124,7 @@ coreo_aws_rule "ec2-TCP-8080" do
   action :define
   service :ec2
   link "https://kb.securestate.vmware.com/aws-ec2-tcpportopen.html"
-  display_name "TCP port is open - 8080"
+  display_name "TCP port is open - 8080 (HTTP)"
   description "Important TCP port is open and/or open to the world."
   category "Security"
   suggested_action "Only open those ports that must be open for your service to operate. Consider deleting or modifying the affected security group."
